@@ -1,4 +1,6 @@
 import time
+from datetime import date
+
 from org.lsst.ccs.scripting import *
 
 CCS.setThrowExceptions(True)
@@ -6,11 +8,12 @@ CCS.setThrowExceptions(True)
 verbose = 1
 
 prefix = "ats"
-dataDir = "/data/ats/20180427"
+dataDir = "/data/ats/"+str(date.today())
 #seqfile = "/u1/ccs/sequences/ITL_standard_TS8_resetfirst_CL_RD_RU.seq"
 
 #subsystem = "crtest"                 # 'crtest' for use with CR in IR2
 subsystem = "ats-wreb"               # 'crtest' for use with CR in IR2
+bonnshutter = "bonn-shutter"
 greb     = subsystem + "/GREB"        # 
 g0biases = subsystem + "/GREB.Bias0"  # 
 g1biases = subsystem + "/GREB.Bias1"  #
@@ -304,17 +307,15 @@ def setBackBiasOff(reb):
 
 # functions for acquiring image data
 
-def acquire(exptime):
+def readoutImage(fname):
     raftsub = CCS.attachSubsystem(subsystem)
-    result = raftsub.synchCommandLine(1000,"acquireImage")
-# No longer needed since WREB firmware update
-#    result = raftsub.synchCommandLine(1000,"startSequencer")
-# Would be better to wait for image, but not available in this version of Rafts subsystem
-    time.sleep(exptime + 30) 
-    print "Saving FITS image to ", dataDir
-    result = raftsub.synchCommand(1000,"saveFitsImage " + dataDir)
-    print result.getResult()
-    return result.getResult()
+    result = raftsub.sendSynchCommand("setFitsFileNamePattern",fname)
+    result = raftsub.sendSynchCommand("setSequencerStart","ReadFrame")
+    result = raftsub.sendSynchCommand("acquireImage")
+    result = raftsub.sendSynchCommand(20,"waitForImage", 10000)
+    result = raftsub.sendSynchCommand("saveFitsImage", dataDir)
+    print "Saved FITS image to %s/%s" % (dataDir,result[0])
+    return result
 
 def acquireBias(filebase):
     print "Acquire Bias: Filebase = ",filebase
@@ -336,14 +337,12 @@ def acquireDark(exptime, filebase):
 
 def acquireExposure(exptime, filebase):
     print "Acquire Exposure:  Time = ", exptime, "   Filebase = ",filebase
-    raftsub = CCS.attachSubsystem(subsystem)
-    result = raftsub.synchCommandLine(1000,"setSequencerStart Exposure")
-    print result.getResult()
-    raftsub.synchCommandLine(1000,"setSequencerParameter ExposureTime "+("%i" % long(exptime * 1000.0 / 25)))
-    setFilename(filebase)
-    return acquire(exptime)
+    shutter = CCS.attachSubsystem(bonnshutter)
+    result = shutter.sendSynchCommand("takeExposure", exptime)
+    result = shutter.sendSynchCommand((int) (exptime+10),"waitForExposure")
+    fname = filebase+"_exp_%g_${timestamp}.fits" % exptime
+    return readoutImage(fname)
     
-
 def clearCCD():
     print "Clearing CCD "
     raftsub = CCS.attachSubsystem(subsystem)
