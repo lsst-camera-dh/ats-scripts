@@ -242,14 +242,15 @@ def vsetRGHi(reb, volts):
 
 def ITLdefaults(reb):
     print "Seting default ITL voltages"
+#  These are "B" ITL3800 voltages for 098 (ats)- kg 20180808
     vsetParLo(reb,-8.0)
     vsetParHi(reb,+3.0)
-    vsetSerLo(reb,-5.0)
-    vsetSerHi(reb,+5.0)
+    vsetSerLo(reb,-8.0)
+    vsetSerHi(reb,+4.0)
     vsetRGLo(reb,-2.0)
     vsetRGHi(reb,+8.0)
-    vsetOG(reb,4.0)
-    vsetOD(reb,25.0)
+    vsetOG(reb,+1.75)
+    vsetOD(reb,26.0)
     vsetGD(reb,20.0)
     vsetRD(reb,13.0)
 
@@ -341,8 +342,8 @@ def acquireExposure(exptime, filebase):
     result = shutter.sendSynchCommand("takeExposure", exptime)
     result = shutter.sendSynchCommand((int) (exptime+10),"waitForExposure")
     fname = filebase+"_exp_%g_${timestamp}.fits" % exptime
-    return readoutImage(fname)
-    
+    return readoutImage(fname)    
+
 def clearCCD():
     print "Clearing CCD "
     raftsub = CCS.attachSubsystem(subsystem)
