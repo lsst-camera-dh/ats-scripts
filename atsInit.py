@@ -21,11 +21,11 @@ print 'Loading sequencer file ',seqfile
 loadSeq(reb,seqfile)
 
 # set the default CCD clock volatges
-print "Make sure Back Bias is off..."
-setBackBiasOff(reb)
-print getBackBiasState(reb)
+#print "Make sure Back Bias is off..."
+#setBackBiasOff(reb)
+#print getBackBiasState(reb)
 
-ITLdefaults(reb)
+#ITLdefaults(reb)
 
 #vsetParLo(reb,-8.0)
 #vsetParHi(reb,+3.0)
