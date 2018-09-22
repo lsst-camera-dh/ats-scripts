@@ -341,6 +341,8 @@ def acquireDark(exptime, filebase):
 
 def acquireExposure(exptime, filebase):
     print "Acquire Exposure:  Time = ", exptime, "   Filebase = ",filebase
+    raftsub = CCS.attachSubsystem(subsystem)
+    raftsub.sendSynchCommand("setExposureTime",exptime)
     shutter = CCS.attachSubsystem(bonnshutter)
     result = shutter.sendSynchCommand("takeExposure", exptime)
     result = shutter.sendSynchCommand((int) (exptime+10),"waitForExposure")
