@@ -313,7 +313,10 @@ def readoutImage(fname):
     result = raftsub.sendSynchCommand("setFitsFileNamePattern",fname)
     result = raftsub.sendSynchCommand("setSequencerStart","ReadFrame")
     result = raftsub.sendSynchCommand("acquireImage")
-    result = raftsub.sendSynchCommand(20,"waitForImage", 10000)
+    result = raftsub.sendSynchCommand("waitForImage", 30000)
+    if result == 0:
+       raise Exception,"Timeout waiting for image" 
+
     result = raftsub.sendSynchCommand("saveFitsImage", dataDir)
     print "Saved FITS image to %s/%s" % (dataDir,result[0])
     return result
