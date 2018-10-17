@@ -4,7 +4,6 @@
 #
 from org.lsst.ccs.scripting import *
 from org.lsst.ccs.bus.states import AlertState
-from datetime import date
 from optparse import OptionParser
 from org.lsst.ccs.subsystem.rafts.fpga.compiler import FPGA2ModelBuilder
 from java.io import File
@@ -16,7 +15,7 @@ CCS.setThrowExceptions(True)
 
 # Directory where output will be written
 
-dataDir = "/data/ats/"+str(date.today())
+dataDir = "/data/ats"
 
 # Parse command line options
 
@@ -71,28 +70,29 @@ for i in range(number):
     bonnsub.sendSynchCommand("takeExposure",exposure)
     bonnsub.sendSynchCommand((int) (exposure+10),"waitForExposure")
  
-  fname = "ats_exp_%g_${imageName}.fits" % exposure
+  fname = "${imageName}_exp_%g.fits" % exposure
   raftsub.sendSynchCommand("setFitsFileNamePattern",fname)
 
   if dark>0:
      print "Dark for %g seconds" % dark
      time.sleep(dark)
-     fname = "ats_dark_%g_${imageName}.fits" % dark
+     fname = "${imageName}_dark_%g.fits" % dark
      raftsub.sendSynchCommand("setFitsFileNamePattern",fname)
 
   print "Reading out"
   raftsub.sendSynchCommand("setSequencerStart","ReadFrame")
-  raftsub.sendSynchCommand("acquireLSSTImage")
-  rc = raftsub.sendSynchCommand("waitForImage",30000)
+  imageName = raftsub.sendSynchCommand("acquireLSSTImage")
+  rc = raftsub.sendSynchCommand("waitForImage",60000)
   if rc == 0:
     raise Exception,"Timeout waiting for image" 
 
-  result = raftsub.sendSynchCommand("saveFitsImage",dataDir)
-  print "Saved FITS image to %s/%s" % (dataDir,result[0])
+  actualDir = dataDir+"/"+imageName.getDateString()
+  result = raftsub.sendSynchCommand("saveFitsImage", actualDir)
+  print "Saved FITS image to %s/%s" % (actualDir, result[0])
 
   if options.ds9:
     su = SampUtils("ats",True)
-    file = File("%s/%s" % (dataDir,result[0]))
+    file = File("%s/%s" % (actualDir,result[0]))
     su.display(file)
     # Kirk's favorite ds9 options
     su.ds9Set("scale scope local", None, 1000)
