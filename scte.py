@@ -27,7 +27,7 @@ Par_Swing_Step = 0.5
 odometer = 1
 imageCount = 1
 etimes = [0,50000.0/float(fluence)]
-setDefaults()
+# setDefaults()
 
 for iLo in range(Lo_Count):
     Lo_Volts = Lo_Start + Lo_Step * iLo
@@ -35,30 +35,25 @@ for iLo in range(Lo_Count):
         Range = Range_Start + Range_Step * iRange
         Hi_Volts = Lo_Volts+Range
         vsetSerLo('w',Lo_Volts)
-        vsetSerLo('g',Lo_Volts)
         vsetSerHi('w',Hi_Volts)
-        vsetSerHi('g',Hi_Volts)
         # loop on difference between serial up and og
         for iog in range(og_sup_Count):
             og_sup = og_sup_Start + og_sup_Step * iog
             og_Volts = Hi_Volts + og_sup
             if og_Volts >= 5 : continue
             vsetOG('w',og_Volts)
-            vsetOG('g',og_Volts)
             Par_Lo_Volts = Par_Lo_Start
             for iPar in range(Par_Lo_Count):
                 Par_Lo_Volts = Par_Lo_Start + Par_Lo_Step * iPar
                 # check that charges can flow into the serial register :
                 if Par_Lo_Volts > Lo_Volts -0.9 : continue
                 vsetParLo('w', Par_Lo_Volts)
-                vsetParLo('g', Par_Lo_Volts)
                 for iSwing in range(Par_Swing_Count):
                     Par_Swing = Par_Swing_Start + Par_Swing_Step * iSwing
                     Par_Hi = Par_Lo_Volts + Par_Swing
                     # check that charges can flow into the serial register :
                     if Par_Hi > Hi_Volts -0.9 : continue
-                    vsetDphi('w', Par_Swing)
-                    vsetDphi('g', Par_Swing)
+                    vsetParHi('w', Par_Hi)
                     for c,exptime in enumerate(etimes):
                         for i in range(0, imageCount):
                             # 05.2f_%05.2f_%05.2f_%03i" % (Lo_Volts, Hi_Volts, og_Volts, i))
@@ -66,6 +61,6 @@ for iLo in range(Lo_Count):
                             odometer += 1
                             acquireExposure(exptime, fbase)
                             print fbase
-setDefaults()
+# setDefaults()
 print "Serial CTE sweep complete."
 

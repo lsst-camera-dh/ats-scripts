@@ -343,9 +343,10 @@ def acquireExposure(exptime, filebase):
     print "Acquire Exposure:  Time = ", exptime, "   Filebase = ",filebase
     raftsub = CCS.attachSubsystem(subsystem)
     raftsub.sendSynchCommand("setExposureTime",exptime)
-    shutter = CCS.attachSubsystem(bonnshutter)
-    result = shutter.sendSynchCommand("takeExposure", exptime)
-    result = shutter.sendSynchCommand((int) (exptime+10),"waitForExposure")
+    if exptime>0:
+       shutter = CCS.attachSubsystem(bonnshutter)
+       result = shutter.sendSynchCommand("takeExposure", exptime)
+       result = shutter.sendSynchCommand((int) (exptime+10),"waitForExposure")
     fname = filebase+"_exp_%g_${timestamp}.fits" % exptime
     return readoutImage(fname)    
 
