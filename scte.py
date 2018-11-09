@@ -3,21 +3,21 @@ from org.lsst.ccs.scripting import *
 from REBlib import *
 
 # set this value to the number of photons per second you get
-fluence = 5660.0 #e-/pix/second
+fluence = 2830.0 #e-/pix/second
 
 # serial CTE sweep
-Lo_Start = -8.5
+Lo_Start = -9.0
 Lo_Count = 7
 Lo_Step = 0.50
-Range_Start = 9.5
+Range_Start = +9.0
 Range_Count = 5
 Range_Step = 0.50
 og_sup_Start = -2
 og_sup_Count = 5
 og_sup_Step = 0.5
 
-Par_Lo_Start = -8.5
-Par_Lo_Count = 2
+Par_Lo_Start = -9.5
+Par_Lo_Count = 4
 Par_Lo_Step = 0.5
 Par_Swing_Start = 10
 Par_Swing_Count = 3
@@ -48,7 +48,7 @@ for iLo in range(Lo_Count):
             for iPar in range(Par_Lo_Count):
                 Par_Lo_Volts = Par_Lo_Start + Par_Lo_Step * iPar
                 # check that charges can flow into the serial register :
-                if Par_Lo_Volts > Lo_Volts + 0.1 : continue
+                if Par_Lo_Volts > Lo_Volts - 0.9 : continue
                 vsetParLo('w', Par_Lo_Volts)
                 for iSwing in range(Par_Swing_Count):
                     Par_Swing = Par_Swing_Start + Par_Swing_Step * iSwing
