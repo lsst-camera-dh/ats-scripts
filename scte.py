@@ -25,6 +25,8 @@ Par_Swing_Step = 0.5
 
 
 odometer = 1
+# Only take images after this odometer value
+startOdometer = 0
 imageCount = 1
 etimes = [0,50000.0/float(fluence)]
 # setDefaults()
@@ -57,10 +59,11 @@ for iLo in range(Lo_Count):
                     for c,exptime in enumerate(etimes):
                         for i in range(0, imageCount):
                             # 05.2f_%05.2f_%05.2f_%03i" % (Lo_Volts, Hi_Volts, og_Volts, i))
-                            fbase = "scte_%04d_%1d"%(odometer,c)
-                            odometer += 1
-                            acquireExposure(exptime, fbase)
-                            print fbase
+                            if odometer>startOdometer:
+                                fbase = "scte_%04d_%1d"%(odometer,c)
+                                odometer += 1
+                                acquireExposure(exptime, fbase)
+                                print fbase
 # setDefaults()
 print "Serial CTE sweep complete."
 
