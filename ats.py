@@ -10,6 +10,7 @@ from java.io import File
 import time
 from org.lsst.ccs.utilities.image.samp import SampUtils
 from java.io import File
+from java.time import Duration
 
 CCS.setThrowExceptions(True)
 
@@ -53,9 +54,14 @@ biasOn = raftsub.sendSynchCommand("isBackBiasOn")
 if not biasOn:
   print "WARNING: Back bias is not on for WREB"
 
-alerts = raftsub.sendSynchCommand("getRaisedAlertSummary")
-if alerts.alertState!=AlertState.NOMINAL:
-  print "WARNING: WREB subsystem is in alarm state %s" % alerts.alertState 
+state = raftsub.sendSynchCommand("getState")
+alert = state.getState(AlertState)
+if alert!=AlertState.NOMINAL:
+   print "WARNING: focal-plane subsystem is in alert state %s" % alert 
+
+#alerts = raftsub.sendSynchCommand("getRaisedAlertSummary")
+#if alerts.alertState!=AlertState.NOMINAL:
+#  print "WARNING: WREB subsystem is in alarm state %s" % alerts.alertState 
 
 for i in range(number):
   print "Clearing CCD "
@@ -68,7 +74,7 @@ for i in range(number):
   if exposure>0:
     print "Exposing for %g seconds" % exposure
     bonnsub.sendSynchCommand("takeExposure",exposure)
-    bonnsub.sendSynchCommand((int) (exposure+10),"waitForExposure")
+    bonnsub.sendSynchCommand(Duration.ofSeconds((int) (exposure+10)),"waitForExposure")
  
   fname = "${imageName}_exp_%g.fits" % exposure
   raftsub.sendSynchCommand("setFitsFileNamePattern",fname)
