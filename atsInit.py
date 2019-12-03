@@ -1,47 +1,58 @@
-# atsInit.py
-# Initialize the ATS camera system
-import time
-from org.lsst.ccs.scripting import *
-from REBlib import *
-
-reb='wreb'
-
-# Setting CCD type does not work yet
-# setCCD('ITL')
-# ccdtype = getCCD()
-# print "CCD type = ",ccdtype
-
-# Configure the ASPICs on the WREB
-#aspicGain(reb,1)
-#aspicRc(reb,15)
-
-# configure the sequencer
-seqfile = '/lsst/ccs/sequences/ats_20180511.seq'
-print 'Loading sequencer file ',seqfile
-loadSeq(reb,seqfile)
-
-# set the default CCD clock volatges
-#print "Make sure Back Bias is off..."
-#setBackBiasOff(reb)
-#print getBackBiasState(reb)
-
-#ITLdefaults(reb)
-
-#vsetParLo(reb,-8.0)
-#vsetParHi(reb,+3.0)
-#vsetSerLo(reb,-9.0)
-#vsetSerHi(reb,+3.0)
-#vsetRGLo(reb,-2.0)
-#vsetRGHi(reb,+8.0)
+#!/usr/bin/env ccs-script
 #
-#vsetOG(reb,3.0)
-#vsetOD(reb,26.0)
-#vsetGD(reb,20.0)
-#vsetRD(reb,13.0)
+# A simple script for initializing the ATS using Stuart's approved procedure 
+#
+from org.lsst.ccs.scripting import *
+from org.lsst.ccs.bus.states import AlertState
+from optparse import OptionParser
+from org.lsst.ccs.subsystem.rafts.fpga.compiler import FPGA2ModelBuilder
+from java.io import File
+import time
+from org.lsst.ccs.utilities.image.samp import SampUtils
+from java.io import File
+from java.time import Duration
+
+CCS.setThrowExceptions(True)
+
+# Connect to subsystems
+raftsub = CCS.attachSubsystem("ats-wreb")
+powersub = CCS.attachSubsystem("ats-power")
+
+# Check initial state
+dphiOn = powersub.sendSynchCommand("isDphiOn")
+if dphiOn:
+   raise RuntimeError("DPHI must be off to run this script")
+hvOn = powersub.sendSynchCommand("isHvBiasOn")
+if hvOn:
+   raise RuntimeError("HVBias must be off to run this script")
+
+raftsub.sendSynchCommand("loadAspics", True)
+raftsub.sendSynchCommand("loadSequencer", "/lsst/ccs/sequences/ats-2s-v7.seq")
+
+ccdType = raftsub.sendSynchCommand("WREB getCcdType")
+if ccdType.toString() != "ITL":
+   raise RuntimeError("Invalid CCDType %s" % ccdType)
+
+register = raftsub.sendSynchCommand("WREB getRegister 0x100000 1")
+print register
 
 
-print "turn Back Bias on..."
-setBackBiasOn(reb)
-print getBackBiasState(reb)
+raftsub.sendSynchCommand("WREB setCCDClocksLow")
 
+register = raftsub.sendSynchCommand("WREB getRegister 0x100000 1")
+print register
+
+raftsub.sendSynchCommand("loadConfiguration Limits:pd_20190523 Rafts:pi_20190816 RaftsLimits:pd_20190523")
+
+raftsub.sendSynchCommand(Duration.ofSeconds(300), "WREB testCCDShorts")
+dphiOn = powersub.sendSynchCommand("dphiOn")
+raftsub.sendSynchCommand(Duration.ofSeconds(300), "WREB powerCCDsOn")
+
+
+
+
+# restore register
+raftsub.sendSynchCommand("WREB setRegister 0x100000 [0x3d4]")
+register = raftsub.sendSynchCommand("WREB getRegister 0x100000 1")
+print register
 
