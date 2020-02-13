@@ -36,19 +36,17 @@ if ccdType.toString() != "ITL":
 register = raftsub.sendSynchCommand("WREB getRegister 0x100000 1")
 print register
 
-
 raftsub.sendSynchCommand("WREB setCCDClocksLow")
 
 register = raftsub.sendSynchCommand("WREB getRegister 0x100000 1")
 print register
 
 raftsub.sendSynchCommand("loadConfiguration Limits:pd_20190523 Rafts:pi_20190816 RaftsLimits:pd_20190523")
-
+time.sleep(1.0)
 raftsub.sendSynchCommand(Duration.ofSeconds(300), "WREB testCCDShorts")
 dphiOn = powersub.sendSynchCommand("dphiOn")
+time.sleep(1.0)
 raftsub.sendSynchCommand(Duration.ofSeconds(300), "WREB powerCCDsOn")
-
-
 
 
 # restore register
